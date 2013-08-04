@@ -1,0 +1,15 @@
+{
+  "name": "hitler",
+  "version": "0.1.0",
+  "description": "Server Automation for NodeJS over SSH",
+  "main": "lib/hitler.js",
+  "dependencies": {
+    "ejs": "0.8.x"
+  },
+  "devDependencies": {
+    "mocha": "1.x"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/mocha -u tdd -R spec --recursive tests"
+  }
+}
