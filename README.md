@@ -1,4 +1,4 @@
-# hitler
+# hitler [![Build Status](https://travis-ci.org/arunoda/hitler.png?branch=master)](https://travis-ci.org/arunoda/hitler)
 ### Server Automation for NodeJS over SSH
 
 ## Install
