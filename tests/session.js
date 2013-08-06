@@ -1,4 +1,5 @@
 var Session = require('../lib/session');
+var helpers = require('../lib/helpers');
 var assert = require('assert');
 var fs = require('fs');
 
@@ -31,7 +32,23 @@ suite('Session', function() {
     });
 
     test('with vars', function(done) {
-      assert.fail('test not implemented yet!');
+
+      var tmpFile = '/tmp/' + helpers.randomId();
+      fs.writeFileSync(tmpFile, 'name: <%=name %>');
+
+      var session = new Session('host', {username: 'root', password: 'kuma'});
+      session._doSpawn = function(command, callback) {
+        var matched = command.match(/sshpass -p kuma scp ([\w\/]*) root@host:~\/dest/);
+        assert.ok(matched);
+
+        var compiledFile = matched[1];
+        assert.ok(compiledFile);
+        var compiledContent = fs.readFileSync(compiledFile, {encoding: 'utf8'});
+        assert.equal(compiledContent, 'name: arunoda');
+
+        callback();
+      };
+      session.copy(tmpFile, '~/dest', {name: 'arunoda'}, done);
     });
   });
 
