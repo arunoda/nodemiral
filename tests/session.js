@@ -29,13 +29,22 @@ suite('Session', function() {
       });
       done();
     });
+
+    test('with vars', function(done) {
+      assert.fail('test not implemented yet!');
+    });
   });
 
   suite('.execute()', function() {
     test('with password', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'});
       session._doSpawn = function(command, callback) {
-        assert.equal(command, 'sshpass -p kuma ssh root@host ls /');
+        var matched = command.match(/sshpass -p kuma ssh root@host "bash -s" < (.*)/);
+        var scriptLocation = matched[1];
+        assert.ok(matched);
+        assert.ok(command.indexOf(scriptLocation) > 0);
+        var fileContent = fs.readFileSync(scriptLocation, {encoding: 'utf8'});
+        assert.equal(fileContent, 'ls /');
         callback();
       };
       session.execute('ls /', done);
@@ -44,7 +53,12 @@ suite('Session', function() {
     test('with pem', function(done) {
       var session = new Session('host', {username: 'root', pem: './aa.pem'});
       session._doSpawn = function(command, callback) {
-        assert.equal(command, 'ssh -i ./aa.pem root@host ls /');
+        var matched = command.match(/ssh -i .\/aa.pem root@host "bash -s" < (.*)/);
+        var scriptLocation = matched[1];
+        assert.ok(matched);
+        assert.ok(command.indexOf(scriptLocation) > 0);
+        var fileContent = fs.readFileSync(scriptLocation, {encoding: 'utf8'});
+        assert.equal(fileContent, 'ls /');
         callback();
       };
       session.execute('ls /', done);
