@@ -1,8 +1,8 @@
 {
-  "name": "hitler",
+  "name": "nodemiral",
   "version": "0.1.2",
   "description": "Server Automation for NodeJS over SSH",
-  "main": "lib/hitler.js",
+  "main": "lib/nodemiral.js",
   "dependencies": {
     "ejs": "0.8.x"
   },

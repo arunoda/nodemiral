@@ -1,9 +1,9 @@
-# hitler [![Build Status](https://travis-ci.org/arunoda/hitler.png?branch=master)](https://travis-ci.org/arunoda/hitler)
+# nodemiral (node + admiral) [![Build Status](https://travis-ci.org/arunoda/nodemiral.png?branch=master)](https://travis-ci.org/arunoda/nodemiral)
 ### Server Automation for NodeJS over SSH
 
 ## Install
 ~~~js
-npm install hitler
+npm install nodemiral
 ~~~
 
 ## Features
@@ -16,8 +16,8 @@ npm install hitler
 
 ## Example
 ~~~js
-var hitler = require('hitler');
-var session = hitler.session('hostname', {username: 'root', password: 'password'});
+var nodemiral = require('nodemiral');
+var session = nodemiral.session('hostname', {username: 'root', password: 'password'});
 
 session.execute('uname -a', function(err, code, logs) {
   console.log(logs.stdout);
@@ -33,7 +33,7 @@ Create a session to a remote server. You can invoke following methods after crea
     @param hostname - hostname or ip addess
     @param auth - object containing following fields: `username` and (`password` or `pem`)
     @param options - currently you can pass ejs options with `ejs` fields
-    hitler.session(hostname, auth, options);
+    nodemiral.session(hostname, auth, options);
 
 ### Session Methods
 
