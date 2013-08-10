@@ -71,4 +71,37 @@ suite('TaskList', function() {
       done();
     });
   });
+
+  test('concat', function(done) {
+    var optionsList = [];
+    var session = {_host: 'host'};
+    TaskList.registerTask('simpleTask', function(_session, options, callback) {
+      assert.equal(session, _session);
+      optionsList.push(options);
+      callback();
+    });
+
+    var tl1 = new TaskList('one', {pretty: false});
+    tl1.simpleTask('Simple Name', {aa: 10});
+    tl1.simpleTask('Simple Name2', {aa: 20});
+
+    var tl2 = new TaskList('two', {pretty: false});
+    tl2.simpleTask('Simple Name', {aa: 30});
+    tl2.simpleTask('Simple Name2', {aa: 40});
+
+    var tl3 = new TaskList('three', {pretty: false});
+    tl3.simpleTask('Simple Name', {aa: 50});
+    tl3.simpleTask('Simple Name2', {aa: 60});
+
+    var combined = tl1.concat([tl2, tl3]);
+    assert.equal(combined._name, tl1._name + '+');
+
+    combined.run(session, function(summeryMap) {
+      assert.ok(summeryMap[session._host]);
+      assert.deepEqual(optionsList, [
+        {aa: 10}, {aa: 20}, {aa: 30}, {aa: 40}, {aa: 50}, {aa: 60}
+        ]);
+      done();
+    });
+  });
 });
