@@ -14,7 +14,7 @@ suite('TaskList', function() {
     var taskList = new TaskList('simple', {pretty: false});
     taskList.simpleTask('Simple Name', {aa: 10});
     taskList.simpleTask('Simple Name2', {aa: 20});
-    taskList.run(session, function(summeryMap) {
+    taskList.run(session, function(err, summeryMap) {
       assert.ok(summeryMap[session._host]);
       assert.deepEqual(optionsList, [{aa: 10}, {aa: 20}]);
       done();
@@ -36,7 +36,7 @@ suite('TaskList', function() {
     taskList.simpleTask2('one', {aa: 10});
     taskList.simpleTask2('two', {aa: 20});
     taskList.simpleTask2('three', {aa: 30});
-    taskList.run(session, function(summeryMap) {
+    taskList.run(session, function(err, summeryMap) {
       assert.ok(summeryMap[session._host]);
       assert.deepEqual(summeryMap[session._host], [
         {action: 'one', status: 'SUCCESS'},
@@ -61,7 +61,7 @@ suite('TaskList', function() {
     taskList.simpleTask3('one', {aa: 10});
     taskList.simpleTask3('two', {aa: 20});
     taskList.simpleTask3('three', {aa: 30});
-    taskList.run(session, function(summeryMap) {
+    taskList.run(session, function(err, summeryMap) {
       assert.ok(summeryMap[session._host]);
       assert.deepEqual(summeryMap[session._host], [
         {action: 'one', status: 'SUCCESS'},
@@ -96,7 +96,7 @@ suite('TaskList', function() {
     var combined = tl1.concat([tl2, tl3]);
     assert.equal(combined._name, tl1._name + '+');
 
-    combined.run(session, function(summeryMap) {
+    combined.run(session, function(err, summeryMap) {
       assert.ok(summeryMap[session._host]);
       assert.deepEqual(optionsList, [
         {aa: 10}, {aa: 20}, {aa: 30}, {aa: 40}, {aa: 50}, {aa: 60}
