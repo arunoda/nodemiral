@@ -10,6 +10,6 @@
     "mocha": "1.x"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha -u tdd -R spec --recursive tests"
+    "test": "./node_modules/.bin/mocha"
   }
 }

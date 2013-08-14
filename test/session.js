@@ -15,12 +15,20 @@ suite('Session', function() {
     });
 
     test('with pem', function(done) {
-      var session = new Session('host', {username: 'root', pem: './aa.pem'});
+      var session = new Session('host', {username: 'root', pem: 'pem-content'});
+      var pemFile;
       session._doSpawn = function(command, callback) {
-        assert.equal(command, 'scp -i ./aa.pem ./src root@host:~/dest');
+        var matched = command.match(/scp -i ([\w\/]*) .\/src root@host:~\/dest/);
+        assert.ok(matched);
+        pemFile = matched[1];
+        var pemFileContent = fs.readFileSync(pemFile, 'utf8');
+        assert.equal(pemFileContent, 'pem-content');
         callback();
       };
-      session.copy('./src', '~/dest', done);
+      session.copy('./src', '~/dest', function() {
+        assert.equal(fs.existsSync(pemFile), false);
+        done();
+      });
     });
 
     test('no pem or password', function(done) {
@@ -68,17 +76,29 @@ suite('Session', function() {
     });
 
     test('with pem', function(done) {
-      var session = new Session('host', {username: 'root', pem: './aa.pem'});
+      var session = new Session('host', {username: 'root', pem: 'the-pem-content'});
+      var pemFile;
+      var scriptLocation;
       session._doSpawn = function(command, callback) {
-        var matched = command.match(/ssh -i .\/aa.pem root@host "bash -s" < (.*)/);
-        var scriptLocation = matched[1];
+        var matched = command.match(/ssh -i ([\w\/]*) root@host "bash -s" < (.*)/);
         assert.ok(matched);
-        assert.ok(command.indexOf(scriptLocation) > 0);
+
+        pemFile = matched[1];
+        scriptLocation = matched[2];
+      
         var fileContent = fs.readFileSync(scriptLocation, {encoding: 'utf8'});
         assert.equal(fileContent, 'ls /');
+
+        var pemFileContent = fs.readFileSync(pemFile, 'utf8');
+        assert.equal(pemFileContent, 'the-pem-content');
+
         callback();
       };
-      session.execute('ls /', done);
+      session.execute('ls /', function() {
+        assert.equal(fs.existsSync(pemFile), false);
+        assert.equal(fs.existsSync(scriptLocation), false);
+        done();
+      });
     });
 
     test('no password or pem', function(done) {
