@@ -1,10 +1,11 @@
 var TaskList = require('../lib/taskList');
+var Session = require('../lib/session');
 var assert = require('assert');
 
 suite('TaskList', function() {
   test('register and run', function(done) {
     var optionsList = [];
-    var session = {_host: 'host'};
+    var session = new Session('host');
     TaskList.registerTask('simpleTask', function(_session, options, callback) {
       assert.equal(session, _session);
       optionsList.push(options);
@@ -22,7 +23,7 @@ suite('TaskList', function() {
   });
 
   test('when error', function(done) {
-    var session = {_host: 'host'};
+    var session = new Session('host');
     TaskList.registerTask('simpleTask2', function(_session, options, callback) {
       assert.equal(session, _session);
       if(options.aa == 20) {
@@ -47,7 +48,7 @@ suite('TaskList', function() {
   });
 
   test('when error - with ignoreErrors', function(done) {
-    var session = {_host: 'host'};
+    var session = new Session('host');
     TaskList.registerTask('simpleTask3', function(_session, options, callback) {
       assert.equal(session, _session);
       if(options.aa == 20) {
@@ -74,7 +75,7 @@ suite('TaskList', function() {
 
   test('concat', function(done) {
     var optionsList = [];
-    var session = {_host: 'host'};
+    var session = new Session('host');
     TaskList.registerTask('simpleTask', function(_session, options, callback) {
       assert.equal(session, _session);
       optionsList.push(options);
