@@ -38,8 +38,12 @@ Create a session to a remote server. You can invoke following methods after crea
 `options`:
 
 * `ejs` - ejs options with `ejs` fields
-* `ignoreHostKey` - use if `true`, use ssh option `-o StrictHostKeyChecking=no`
-* `ignoreKnownHosts` - use if `true`, use ssh option `-o UserKnownHostsFile=/dev/null`
+* `sshOptions` - object whose key and value will be passed as `-o key:value` to any ssh session
+
+    sshOptions: {
+      'StrictHostKeyChecking': 'no',
+      'UserKnownHostsFile': '/dev/null'
+    }
 
 ### Session Methods
 
