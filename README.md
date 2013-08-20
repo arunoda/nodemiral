@@ -32,8 +32,14 @@ Create a session to a remote server. You can invoke following methods after crea
 
     @param hostname - hostname or ip addess
     @param auth - object containing following fields: `username` and (`password` or `pem`)
-    @param options - currently you can pass ejs options with `ejs` fields
+    @param options - object of options described below
     nodemiral.session(hostname, auth, options);
+
+`options`:
+
+* `ejs` - ejs options with `ejs` fields
+* `sshOptions` - object whose key and value will be passed as `-o key:value` to any ssh session. For example `sshOptions: { 'StrictHostKeyChecking': 'no',
+ 'UserKnownHostsFile': '/dev/null' }`
 
 ### Session Methods
 

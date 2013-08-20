@@ -58,6 +58,21 @@ suite('Session', function() {
       };
       session.copy(tmpFile, '~/dest', {name: 'arunoda'}, done);
     });
+
+    test('with sshOptions', function(done) {
+
+      var tmpFile = '/tmp/' + helpers.randomId();
+      fs.writeFileSync(tmpFile, 'name: <%=name %>');
+
+      var session = new Session('host', {username: 'root', password: 'kuma'}, { sshOptions: { foo: 'bar' }});
+      session._doSpawn = function(command, callback) {
+        fs.unlinkSync(tmpFile);
+        var matched = command.match(/sshpass -p kuma scp -o foo=bar ([\w\/]*) root@host:~\/dest/);
+        assert.ok(matched);
+        callback();
+      };
+      session.copy(tmpFile, '~/dest', {name: 'arunoda'}, done);
+    });
   });
 
   suite('.execute()', function() {
@@ -107,6 +122,16 @@ suite('Session', function() {
         session.execute('ls /', done);
       });
       done();
+    });
+
+    test('with sshOptions', function(done) {
+      var session = new Session('host', {username: 'root', password: 'kuma'}, { sshOptions: { foo: 'bar' }});
+      session._doSpawn = function(command, callback) {
+        var matched = command.match(/sshpass -p kuma ssh -o foo=bar root@host "bash -s" < (.*)/);
+        assert.ok(matched);
+        callback();
+      };
+      session.execute('ls /', done);
     });
   });
 
