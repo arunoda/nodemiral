@@ -15,8 +15,11 @@ suite('TaskList', function() {
     var taskList = new TaskList('simple', {pretty: false});
     taskList.simpleTask('Simple Name', {aa: 10});
     taskList.simpleTask('Simple Name2', {aa: 20});
-    taskList.run(session, function(err, summeryMap) {
-      assert.ok(summeryMap[session._host]);
+    taskList.run(session, function(summeryMap) {
+      assert.deepEqual(summeryMap[session._host], {error: null, history: [
+        {task: 'Simple Name', status: 'SUCCESS'},
+        {task: 'Simple Name2', status: 'SUCCESS'}
+      ]});
       assert.deepEqual(optionsList, [{aa: 10}, {aa: 20}]);
       done();
     });
@@ -37,11 +40,12 @@ suite('TaskList', function() {
     taskList.simpleTask2('one', {aa: 10});
     taskList.simpleTask2('two', {aa: 20});
     taskList.simpleTask2('three', {aa: 30});
-    taskList.run(session, function(err, summeryMap) {
-      assert.ok(summeryMap[session._host]);
-      assert.deepEqual(summeryMap[session._host], [
-        {action: 'one', status: 'SUCCESS'},
-        {action: 'two', status: 'FAILED', error: 'error-here'}
+    taskList.run(session, function(summeryMap) {
+      var summery = summeryMap[session._host];
+      assert.equal(summery.error.message, 'error-here');
+      assert.deepEqual(summery.history, [
+        {task: 'one', status: 'SUCCESS'},
+        {task: 'two', status: 'FAILED', error: 'error-here'}
       ]);
       done();
     });
@@ -62,12 +66,13 @@ suite('TaskList', function() {
     taskList.simpleTask3('one', {aa: 10});
     taskList.simpleTask3('two', {aa: 20});
     taskList.simpleTask3('three', {aa: 30});
-    taskList.run(session, function(err, summeryMap) {
-      assert.ok(summeryMap[session._host]);
-      assert.deepEqual(summeryMap[session._host], [
-        {action: 'one', status: 'SUCCESS'},
-        {action: 'two', status: 'FAILED', error: 'error-here'},
-        {action: 'three', status: 'SUCCESS'},
+    taskList.run(session, function(summeryMap) {
+      var summery = summeryMap[session._host];
+      assert.ifError(summery.error);
+      assert.deepEqual(summery.history, [
+        {task: 'one', status: 'SUCCESS'},
+        {task: 'two', status: 'FAILED', error: 'error-here'},
+        {task: 'three', status: 'SUCCESS'},
       ]);
       done();
     });
@@ -97,8 +102,8 @@ suite('TaskList', function() {
     var combined = tl1.concat([tl2, tl3]);
     assert.equal(combined._name, tl1._name + '+');
 
-    combined.run(session, function(err, summeryMap) {
-      assert.ok(summeryMap[session._host]);
+    combined.run(session, function(summeryMap) {
+      assert.ifError(summeryMap[session._host].error);
       assert.deepEqual(optionsList, [
         {aa: 10}, {aa: 20}, {aa: 30}, {aa: 40}, {aa: 50}, {aa: 60}
         ]);
