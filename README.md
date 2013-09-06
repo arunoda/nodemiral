@@ -65,7 +65,7 @@ execute a local shell script in the remote server. You can template shell script
     session.executeScript(localScriptFile, templateVars, callback);
 
 #### copy
-copy a file from local machine to the remote machine. Supports binary files too.
+copy a file from local machine to the remote machine. Supports binary files too. Support EJS templating with non-binary files
 
     @param localFile - localFile
     @param remoteFileLocation - remoteFileLocation
@@ -73,4 +73,4 @@ copy a file from local machine to the remote machine. Supports binary files too.
       err - err if exists
       code - status code of the ssh process
       logs - {stdout: 'stdout logs', stderr: 'stderr logs'}
-    session.copy(localFile, remoteFileLocation, callback)
+    session.copy(localFile, remoteFileLocation, templateVars, callback)
