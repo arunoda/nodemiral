@@ -38,8 +38,7 @@ Create a session to a remote server. You can invoke following methods after crea
 `options`:
 
 * `ejs` - ejs options with `ejs` fields
-* `sshOptions` - object whose key and value will be passed as `-o key:value` to any ssh session. For example `sshOptions: { 'StrictHostKeyChecking': 'no',
- 'UserKnownHostsFile': '/dev/null' }`
+* `ssh` - object whose key and value will be passed as `-o key:value` to any ssh session. For example `{ 'StrictHostKeyChecking': 'no', 'UserKnownHostsFile': '/dev/null' }`
 
 ### Session Methods
 

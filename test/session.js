@@ -59,12 +59,12 @@ suite('Session', function() {
       session.copy(tmpFile, '~/dest', {name: 'arunoda'}, done);
     });
 
-    test('with sshOptions', function(done) {
+    test('with ssh options', function(done) {
 
       var tmpFile = '/tmp/' + helpers.randomId();
       fs.writeFileSync(tmpFile, 'name: <%=name %>');
 
-      var session = new Session('host', {username: 'root', password: 'kuma'}, { sshOptions: { foo: 'bar' }});
+      var session = new Session('host', {username: 'root', password: 'kuma'}, { ssh: { foo: 'bar' }});
       session._doSpawn = function(command, callback) {
         fs.unlinkSync(tmpFile);
         var matched = command.match(/sshpass -p kuma scp -o foo=bar ([\w\/]*) root@host:~\/dest/);
@@ -125,7 +125,7 @@ suite('Session', function() {
     });
 
     test('with sshOptions', function(done) {
-      var session = new Session('host', {username: 'root', password: 'kuma'}, { sshOptions: { foo: 'bar' }});
+      var session = new Session('host', {username: 'root', password: 'kuma'}, { ssh: { foo: 'bar' }});
       session._doSpawn = function(command, callback) {
         var matched = command.match(/sshpass -p kuma ssh -o foo=bar root@host "bash -s" < (.*)/);
         assert.ok(matched);
