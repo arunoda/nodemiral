@@ -4,7 +4,8 @@
   "description": "Server Automation for NodeJS over SSH",
   "main": "lib/nodemiral.js",
   "dependencies": {
-    "ejs": "0.8.x"
+    "ejs": "0.8.x",
+    "debug": "0.7.x"
   },
   "devDependencies": {
     "mocha": "1.x"
