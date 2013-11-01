@@ -12,7 +12,7 @@ taskList.execute('invoke uname', {
 });
 
 taskList.print('printing uname', {
-  message: function() { return "Uname is: " + this.uname }
+  message: "\t Uname is: {{uname}}"
 });
 
 taskList.run(session);

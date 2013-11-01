@@ -159,4 +159,50 @@ suite('TaskList', function() {
       done();
     });
   });
+
+  test('variable mapper: string based variable replacements', function(done) {
+    var optionsList = [];
+    var session = new Session('host');
+    TaskList.registerTask('first', function(_session, options, callback, varsMapper) {
+      optionsList.push(options);
+      var stdout = "value1";
+      var stderr = "value2";
+      varsMapper(stdout, stderr);
+      callback();
+    });
+
+    TaskList.registerTask('second', function(_session, options, callback, varsMapper) {
+      optionsList.push(options);
+      //this does not support varsMappers, so simply do nothing
+      callback();
+    });
+
+    var taskList = new TaskList('simple', {pretty: false});
+
+    taskList.first('One', {aa: 10}, function(stdout, stderr) {
+      this.simple = {
+        v1: stdout,
+        v2: stderr
+      };
+    });
+
+    taskList.second('Two', {
+      data: "v1: {{simple.v1}} - v2: {{simple.v2}}",
+      aa: 20
+    });
+
+    taskList.run(session, function(summeryMap) { 
+      assert.deepEqual(summeryMap[session._host], {error: null, history: [
+        {task: 'One', status: 'SUCCESS'},
+        {task: 'Two', status: 'SUCCESS'}
+      ]});
+
+      assert.deepEqual(optionsList, [{aa: 10}, {
+        data: "v1: value1 - v2: value2",
+        aa: 20
+      }]);
+
+      done();
+    });
+  });
 });

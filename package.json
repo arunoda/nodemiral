@@ -5,7 +5,8 @@
   "main": "lib/nodemiral.js",
   "dependencies": {
     "ejs": "0.8.x",
-    "debug": "0.7.x"
+    "debug": "0.7.x",
+    "handlebars": "1.0.x"
   },
   "devDependencies": {
     "mocha": "1.x"
