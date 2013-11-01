@@ -211,6 +211,60 @@ suite('TaskList', function() {
     });
   });
 
+  test('variable mapper: globalVars', function(done) {
+    var optionsList = [];
+    var sessions = [new Session('a'), new Session('b')];
+    TaskList.registerTask('first', function(_session, options, callback, varsMapper) {
+      optionsList.push(options);
+      var stdout = "value1:" + _session._host;
+      var stderr = "value2:" + _session._host;
+      varsMapper(stdout, stderr);
+      callback();
+    });
+
+    TaskList.registerTask('second', function(_session, options, callback, varsMapper) {
+      optionsList.push(options);
+      //this does not support varsMappers, so simply do nothing
+      callback();
+    });
+
+    var taskList = new TaskList('simple', {pretty: false});
+
+    taskList.first('One', {aa: 10}, function(stdout, stderr, globalVars) {
+      this.simple = {
+        v1: stdout,
+        v2: stderr
+      };
+
+      globalVars.aa = stdout;
+    });
+
+    taskList.second('Two', {
+      data: function() {return this.simple },
+      aa: 20
+    });
+
+    taskList.run(sessions, function(summeryMap) { 
+      assert.deepEqual(summeryMap['a'], {error: null, history: [
+        {task: 'One', status: 'SUCCESS'},
+        {task: 'Two', status: 'SUCCESS'}
+      ]});
+
+      assert.deepEqual(summeryMap['b'], {error: null, history: [
+        {task: 'One', status: 'SUCCESS'},
+        {task: 'Two', status: 'SUCCESS'}
+      ]});
+
+      var mappedValues = {};
+      mappedValues.a = {simple: {v1: 'value1:a', v2: 'value2:a'}};
+      mappedValues.b = {simple: {v1: 'value1:b', v2: 'value2:b'}};
+
+      assert.deepEqual(taskList._vars, mappedValues);
+      assert.deepEqual(taskList._globalVars, {aa: 'value1:b'});
+      done();
+    });
+  });
+
   test('variable mapper: string based variable replacements', function(done) {
     var optionsList = [];
     var session = new Session('host');
