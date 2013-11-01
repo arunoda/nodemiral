@@ -130,15 +130,15 @@ suite('TaskList', function() {
 
     var taskList = new TaskList('simple', {pretty: false});
 
-    taskList.first('One', {aa: 10}, function(vars, stdout, stderr) {
-      vars.simple = {
+    taskList.first('One', {aa: 10}, function(stdout, stderr) {
+      this.simple = {
         v1: stdout,
         v2: stderr
       };
     });
 
     taskList.second('Two', {
-      data: function(vars) {return vars.simple },
+      data: function() {return this.simple },
       aa: 20
     });
 
