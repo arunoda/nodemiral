@@ -165,7 +165,7 @@ suite('Session', function() {
 
     test('with ejs', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'});
-      session.execute = function(shellCommand, callback) {
+      session.execute = function(shellCommand, options, callback) {
         assert.equal(shellCommand, 'ls -all /');
         callback();
       };
@@ -182,7 +182,7 @@ suite('Session', function() {
         open: '{{',
         close: '}}'
       }});
-      session.execute = function(shellCommand, callback) {
+      session.execute = function(shellCommand, options, callback) {
         assert.equal(shellCommand, 'ls -all /');
         callback();
       };
