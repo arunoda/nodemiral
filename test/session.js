@@ -7,7 +7,7 @@ suite('Session', function() {
   suite('.copy()', function() {
     test('with password', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'});
-      session._doSpawn = function(command, callback) {
+      session._doSpawn = function(command, options, callback) {
         assert.equal(command, 'sshpass -p kuma scp ./src root@host:~/dest');
         callback();
       };
@@ -17,7 +17,7 @@ suite('Session', function() {
     test('with pem', function(done) {
       var session = new Session('host', {username: 'root', pem: 'pem-content'});
       var pemFile;
-      session._doSpawn = function(command, callback) {
+      session._doSpawn = function(command, options, callback) {
         var matched = command.match(/scp -i ([\w\/]*) .\/src root@host:~\/dest/);
         assert.ok(matched);
         pemFile = matched[1];
@@ -45,7 +45,7 @@ suite('Session', function() {
       fs.writeFileSync(tmpFile, 'name: <%=name %>');
 
       var session = new Session('host', {username: 'root', password: 'kuma'});
-      session._doSpawn = function(command, callback) {
+      session._doSpawn = function(command, options, callback) {
         var matched = command.match(/sshpass -p kuma scp ([\w\/]*) root@host:~\/dest/);
         assert.ok(matched);
 
@@ -65,7 +65,7 @@ suite('Session', function() {
       fs.writeFileSync(tmpFile, 'name: <%=name %>');
 
       var session = new Session('host', {username: 'root', password: 'kuma'}, { ssh: { foo: 'bar' }});
-      session._doSpawn = function(command, callback) {
+      session._doSpawn = function(command, options, callback) {
         fs.unlinkSync(tmpFile);
         var matched = command.match(/sshpass -p kuma scp -o foo=bar ([\w\/]*) root@host:~\/dest/);
         assert.ok(matched);
@@ -78,7 +78,7 @@ suite('Session', function() {
   suite('.execute()', function() {
     test('with password', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'});
-      session._doSpawn = function(command, callback) {
+      session._doSpawn = function(command, options, callback) {
         var matched = command.match(/sshpass -p kuma ssh root@host "bash -s" < (.*)/);
         var scriptLocation = matched[1];
         assert.ok(matched);
@@ -94,7 +94,7 @@ suite('Session', function() {
       var session = new Session('host', {username: 'root', pem: 'the-pem-content'});
       var pemFile;
       var scriptLocation;
-      session._doSpawn = function(command, callback) {
+      session._doSpawn = function(command, options, callback) {
         var matched = command.match(/ssh -i ([\w\/]*) root@host "bash -s" < (.*)/);
         assert.ok(matched);
 
@@ -126,7 +126,7 @@ suite('Session', function() {
 
     test('with sshOptions', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'}, { ssh: { foo: 'bar' }});
-      session._doSpawn = function(command, callback) {
+      session._doSpawn = function(command, options, callback) {
         var matched = command.match(/sshpass -p kuma ssh -o foo=bar root@host "bash -s" < (.*)/);
         assert.ok(matched);
         callback();
@@ -138,13 +138,13 @@ suite('Session', function() {
   suite('.executeScript', function() {
     test('file exists', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'});
-      session.execute = function(shellCommand, callback) {
+      session.execute = function(shellCommand, options, callback) {
         assert.equal(shellCommand, 'ls -all /');
         callback();
       };
       var file = '/tmp/' + Math.ceil(Math.random() * 9999999);
       fs.writeFileSync(file, 'ls -all /');
-      session.executeScript(file, function() {
+      session.executeScript(file, {}, function() {
         fs.unlinkSync(file);
         done();
       });
@@ -152,12 +152,12 @@ suite('Session', function() {
 
     test('file not exists', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'});
-      session.execute = function(shellCommand, callback) {
+      session.execute = function(shellCommand, options, callback) {
         assert.equal(shellCommand, 'ls -all /');
         callback();
       };
 
-      session.executeScript('/tmp/ssdcs', function(err) {
+      session.executeScript('/tmp/ssdcs', {}, function(err) {
         assert.ok(err);
         done();
       });

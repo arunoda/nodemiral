@@ -46,6 +46,7 @@ Create a session to a remote server. You can invoke following methods after crea
 execute given shell command on the remote server
 
     @param shellCommand - shellCommand
+    @param options - {onStdout, onStderr}
     @param callback - callback containing following parameters
       err - err if exists
       code - status code of the ssh process
@@ -56,7 +57,8 @@ execute given shell command on the remote server
 execute a local shell script in the remote server. You can template shell script with [EJS](https://github.com/visionmedia/ejs).
 
     @param localScriptFile - localScriptFile
-    @param templateVars - optional variables to the template if uses ejs in the script
+    @param templateVars - variables to the template if uses ejs in the script
+    @param options - {onStdout, onStderr}
     @param callback - callback containing following parameters
       err - err if exists
       code - status code of the ssh process
@@ -68,6 +70,7 @@ copy a file from local machine to the remote machine. Supports binary files too.
 
     @param localFile - localFile
     @param remoteFileLocation - remoteFileLocation
+    @param options - {onStdout, onStderr}
     @param callback - callback containing following parameters
       err - err if exists
       code - status code of the ssh process
