@@ -15,8 +15,8 @@ suite('TaskList', function() {
     var taskList = new TaskList('simple', {pretty: false});
     taskList.simpleTask('Simple Name', {aa: 10});
     taskList.simpleTask('Simple Name2', {aa: 20});
-    taskList.run(session, function(summeryMap) {
-      assert.deepEqual(summeryMap[session._host], {error: null, history: [
+    taskList.run(session, function(summaryMap) {
+      assert.deepEqual(summaryMap[session._host], {error: null, history: [
         {task: 'Simple Name', status: 'SUCCESS'},
         {task: 'Simple Name2', status: 'SUCCESS'}
       ]});
@@ -40,10 +40,10 @@ suite('TaskList', function() {
     taskList.simpleTask2('one', {aa: 10});
     taskList.simpleTask2('two', {aa: 20});
     taskList.simpleTask2('three', {aa: 30});
-    taskList.run(session, function(summeryMap) {
-      var summery = summeryMap[session._host];
-      assert.equal(summery.error.message, 'error-here');
-      assert.deepEqual(summery.history, [
+    taskList.run(session, function(summaryMap) {
+      var summary = summaryMap[session._host];
+      assert.equal(summary.error.message, 'error-here');
+      assert.deepEqual(summary.history, [
         {task: 'one', status: 'SUCCESS'},
         {task: 'two', status: 'FAILED', error: 'error-here'}
       ]);
@@ -66,13 +66,13 @@ suite('TaskList', function() {
     taskList.simpleTask3('one', {aa: 10});
     taskList.simpleTask3('two', {aa: 20});
     taskList.simpleTask3('three', {aa: 30});
-    taskList.run(session, function(summeryMap) {
-      var summery = summeryMap[session._host];
-      assert.ifError(summery.error);
-      assert.deepEqual(summery.history, [
+    taskList.run(session, function(summaryMap) {
+      var summary = summaryMap[session._host];
+      assert.ifError(summary.error);
+      assert.deepEqual(summary.history, [
         {task: 'one', status: 'SUCCESS'},
         {task: 'two', status: 'FAILED', error: 'error-here'},
-        {task: 'three', status: 'SUCCESS'},
+        {task: 'three', status: 'SUCCESS'}
       ]);
       done();
     });
@@ -102,8 +102,8 @@ suite('TaskList', function() {
     var combined = tl1.concat([tl2, tl3]);
     assert.equal(combined._name, tl1._name + '+');
 
-    combined.run(session, function(summeryMap) {
-      assert.ifError(summeryMap[session._host].error);
+    combined.run(session, function(summaryMap) {
+      assert.ifError(summaryMap[session._host].error);
       assert.deepEqual(optionsList, [
         {aa: 10}, {aa: 20}, {aa: 30}, {aa: 40}, {aa: 50}, {aa: 60}
         ]);
@@ -142,8 +142,8 @@ suite('TaskList', function() {
       aa: 20
     });
 
-    taskList.run(session, function(summeryMap) { 
-      assert.deepEqual(summeryMap[session._host], {error: null, history: [
+    taskList.run(session, function(summaryMap) {
+      assert.deepEqual(summaryMap[session._host], {error: null, history: [
         {task: 'One', status: 'SUCCESS'},
         {task: 'Two', status: 'SUCCESS'}
       ]});
@@ -191,13 +191,13 @@ suite('TaskList', function() {
       aa: 20
     });
 
-    taskList.run(sessions, function(summeryMap) { 
-      assert.deepEqual(summeryMap['a'], {error: null, history: [
+    taskList.run(sessions, function(summaryMap) {
+      assert.deepEqual(summaryMap['a'], {error: null, history: [
         {task: 'One', status: 'SUCCESS'},
         {task: 'Two', status: 'SUCCESS'}
       ]});
 
-      assert.deepEqual(summeryMap['b'], {error: null, history: [
+      assert.deepEqual(summaryMap['b'], {error: null, history: [
         {task: 'One', status: 'SUCCESS'},
         {task: 'Two', status: 'SUCCESS'}
       ]});
@@ -244,13 +244,13 @@ suite('TaskList', function() {
       aa: 20
     });
 
-    taskList.run(sessions, function(summeryMap) { 
-      assert.deepEqual(summeryMap['a'], {error: null, history: [
+    taskList.run(sessions, function(summaryMap) {
+      assert.deepEqual(summaryMap['a'], {error: null, history: [
         {task: 'One', status: 'SUCCESS'},
         {task: 'Two', status: 'SUCCESS'}
       ]});
 
-      assert.deepEqual(summeryMap['b'], {error: null, history: [
+      assert.deepEqual(summaryMap['b'], {error: null, history: [
         {task: 'One', status: 'SUCCESS'},
         {task: 'Two', status: 'SUCCESS'}
       ]});
@@ -296,8 +296,8 @@ suite('TaskList', function() {
       aa: 20
     });
 
-    taskList.run(session, function(summeryMap) { 
-      assert.deepEqual(summeryMap[session._host], {error: null, history: [
+    taskList.run(session, function(summaryMap) {
+      assert.deepEqual(summaryMap[session._host], {error: null, history: [
         {task: 'One', status: 'SUCCESS'},
         {task: 'Two', status: 'SUCCESS'}
       ]});
