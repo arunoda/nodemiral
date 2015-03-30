@@ -14,11 +14,37 @@ suite('Session', function() {
       session.copy('./src', '~/dest', done);
     });
 
+    test('rsync with password', function(done) {
+      var session = new Session('host', {username: 'root', password: 'kuma'}, {rsync: true});
+      session._doSpawn = function(command, options, callback) {
+        assert.equal(command, 'sshpass -p kuma env RSYNC_CONNECT_PROG=\"ssh\" rsync -avzP ./src root@host:~/dest');
+        callback();
+      };
+      session.copy('./src', '~/dest', done);
+    });
+
     test('with pem', function(done) {
       var session = new Session('host', {username: 'root', pem: 'pem-content'});
       var pemFile;
       session._doSpawn = function(command, options, callback) {
         var matched = command.match(/scp -i ([\w\/]*) .\/src root@host:~\/dest/);
+        assert.ok(matched);
+        pemFile = matched[1];
+        var pemFileContent = fs.readFileSync(pemFile, 'utf8');
+        assert.equal(pemFileContent, 'pem-content');
+        callback();
+      };
+      session.copy('./src', '~/dest', function() {
+        assert.equal(fs.existsSync(pemFile), false);
+        done();
+      });
+    });
+
+    test('rsync with pem', function(done) {
+      var session = new Session('host', {username: 'root', pem: 'pem-content'}, {rsync: true});
+      var pemFile;
+      session._doSpawn = function(command, options, callback) {
+        var matched = command.match(/env RSYNC_CONNECT_PROG="ssh -i ([\w\/]*)" rsync -avzP .\/src root@host:~\/dest/);
         assert.ok(matched);
         pemFile = matched[1];
         var pemFileContent = fs.readFileSync(pemFile, 'utf8');
@@ -59,6 +85,26 @@ suite('Session', function() {
       session.copy(tmpFile, '~/dest', {name: 'arunoda'}, done);
     });
 
+    test('rsync with vars', function(done) {
+
+      var tmpFile = '/tmp/' + helpers.randomId();
+      fs.writeFileSync(tmpFile, 'name: <%=name %>');
+
+      var session = new Session('host', {username: 'root', password: 'kuma'}, {rsync: true});
+      session._doSpawn = function(command, options, callback) {
+        var matched = command.match(/sshpass -p kuma env RSYNC_CONNECT_PROG="ssh" rsync -avzP ([\w\/]*) root@host:~\/dest/);
+        assert.ok(matched);
+
+        var compiledFile = matched[1];
+        assert.ok(compiledFile);
+        var compiledContent = fs.readFileSync(compiledFile, {encoding: 'utf8'});
+        assert.equal(compiledContent, 'name: arunoda');
+
+        callback();
+      };
+      session.copy(tmpFile, '~/dest', {name: 'arunoda'}, done);
+    });
+
     test('with ssh options', function(done) {
 
       var tmpFile = '/tmp/' + helpers.randomId();
@@ -68,6 +114,21 @@ suite('Session', function() {
       session._doSpawn = function(command, options, callback) {
         fs.unlinkSync(tmpFile);
         var matched = command.match(/sshpass -p kuma scp -o foo=bar ([\w\/]*) root@host:~\/dest/);
+        assert.ok(matched);
+        callback();
+      };
+      session.copy(tmpFile, '~/dest', {name: 'arunoda'}, done);
+    });
+
+    test('rsync with ssh options', function(done) {
+
+      var tmpFile = '/tmp/' + helpers.randomId();
+      fs.writeFileSync(tmpFile, 'name: <%=name %>');
+
+      var session = new Session('host', {username: 'root', password: 'kuma'}, { ssh: { foo: 'bar' }, rsync: true});
+      session._doSpawn = function(command, options, callback) {
+        fs.unlinkSync(tmpFile);
+        var matched = command.match(/sshpass -p kuma env RSYNC_CONNECT_PROG="ssh -o foo=bar" rsync -avzP ([\w\/]*) root@host:~\/dest/);
         assert.ok(matched);
         callback();
       };
