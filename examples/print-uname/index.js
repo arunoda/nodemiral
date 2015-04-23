@@ -1,18 +1,25 @@
 var fs = require('fs');
 var nodemiral = require('../../');
+var path = require('path');
 
 var sshPrivateKey = fs.readFileSync(process.env.HOME + '/.ssh/id_rsa', 'utf8');
-var session = nodemiral.session('162.243.77.68', {username: 'root', pem: sshPrivateKey});
+var session = nodemiral.session('45.55.171.58', {username: 'root', pem: sshPrivateKey});
 var taskList = nodemiral.taskList('Getting and Printing `uname -a`');
 
-taskList.execute('invoke uname', {
-  command: 'uname -a'
-}, function(stdout, stderr) {
-  this.uname = stdout;
+taskList.copy('copy passwd', {
+  src: path.resolve(__dirname, "template.conf"),
+  dest: '/tmp/hello',
+  vars: {name: "arunoda"} 
 });
 
-taskList.print('printing uname', {
-  message: "\t Uname is: {{uname}}"
+taskList.execute('get it', {
+  command: 'cat /tmp/hello'
+}, function(stdout, stderr) {
+  this.hello = stdout;
+});
+
+taskList.print('printing hello', {
+  message: "\t Hello is: {{hello}}"
 });
 
 taskList.run(session);
