@@ -3,9 +3,10 @@ var nodemiral = require('../../');
 var path = require('path');
 
 var sshPrivateKey = fs.readFileSync(process.env.HOME + '/.ssh/id_rsa', 'utf8');
-var session = nodemiral.session('45.55.171.58', {username: 'root', pem: sshPrivateKey});
+var session = nodemiral.session('45.55.171.58', {username: 'root', pem: sshPrivateKey}, {keepAlive: false});
 var taskList = nodemiral.taskList('Getting and Printing `uname -a`');
 
+var closeCnt = 0;
 taskList.copy('copy passwd', {
   src: path.resolve(__dirname, "template.conf"),
   dest: '/tmp/hello',
@@ -22,4 +23,26 @@ taskList.print('printing hello', {
   message: "\t Hello is: {{hello}}"
 });
 
-taskList.run(session);
+taskList.run(session, function() {
+  if(++closeCnt == 2) {
+    session.close();
+  }
+});
+
+var taskList2 = nodemiral.taskList('Print..');
+
+taskList2.execute('get it', {
+  command: 'cat /tmp/hello'
+}, function(stdout, stderr) {
+  this.hello = stdout;
+});
+
+taskList2.print('printing hello', {
+  message: "\t Hello is: {{hello}}"
+});
+
+taskList2.run(session, function() {
+  if(++closeCnt == 2) {
+    session.close();
+  }
+});
