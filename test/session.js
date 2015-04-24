@@ -1,138 +1,283 @@
 var Session = require('../lib/session');
 var helpers = require('../lib/helpers');
+var SSH = require('../lib/ssh');
 var assert = require('assert');
 var fs = require('fs');
+var sinon = require('sinon');
 
 suite('Session', function() {
-  suite('.copy()', function() {
-    test('with password', function(done) {
-      var session = new Session('host', {username: 'root', password: 'kuma'});
-      session._doSpawn = function(command, options, callback) {
-        assert.equal(command, 'sshpass -p kuma scp ./src root@host:~/dest');
-        callback();
-      };
-      session.copy('./src', '~/dest', done);
+  suite('_getSshConnInfo', function() {
+    test('username and password', function() {
+      var host = "the-host";
+      var auth = {username: 'user', password: 'password'};
+      var s = new Session(host, auth);
+      var conf = s._getSshConnInfo();
+
+      assert.deepEqual(conf, {
+        host: host,
+        username: auth.username,
+        password: auth.password,
+        readyTimeout: 60000
+      });
     });
 
-    test('with pem', function(done) {
-      var session = new Session('host', {username: 'root', pem: 'pem-content'});
-      var pemFile;
-      session._doSpawn = function(command, options, callback) {
-        var matched = command.match(/scp -i ([\w\/]*) .\/src root@host:~\/dest/);
-        assert.ok(matched);
-        pemFile = matched[1];
-        var pemFileContent = fs.readFileSync(pemFile, 'utf8');
-        assert.equal(pemFileContent, 'pem-content');
-        callback();
+    test('username and pem', function() {
+      var host = "the-host";
+      var auth = {username: 'user', pem: 'the-pem'};
+      var s = new Session(host, auth);
+      var conf = s._getSshConnInfo();
+
+      assert.deepEqual(conf, {
+        host: host,
+        username: auth.username,
+        privateKey: auth.pem,
+        readyTimeout: 60000
+      });
+    });
+
+    test('custom options', function() {
+      var host = "the-host";
+      var auth = {username: 'user', pem: 'the-pem'};
+      var options = {ssh: {port: 22}};
+      var s = new Session(host, auth, options);
+      var conf = s._getSshConnInfo();
+
+      assert.deepEqual(conf, {
+        host: host,
+        port: options.ssh.port,
+        username: auth.username,
+        privateKey: auth.pem,
+        readyTimeout: 60000
+      });
+    });
+  });
+
+  suite('_withSshClient', function() {
+    var originalConnect = SSH.prototype.connect;
+    setup(function() {
+      SSH.prototype.connect = function() {};
+    });
+
+    teardown(function() {
+      SSH.prototype.connect = originalConnect;
+    });
+
+    test('get a client', function(done) {
+      var session = new Session('host', {username: 'u', password: 'p'});
+      session._withSshClient(function(client, close) {
+        client.close = done;
+        close();
+      });
+    });
+
+    test('get two client', function(done) {
+      var session = new Session('host', {username: 'u', password: 'p'});
+      session._withSshClient(function(client, close) {
+        close();
+        session._withSshClient(function(client2, close2) {
+          client2.close = done;
+          close2();
+        });
+      });
+    });
+
+    test('get a keepAlive client', function(done) {
+      var options = {keepAlive: true};
+      var session = new Session('host', {username: 'u', password: 'p'}, options);
+      session._withSshClient(function(client, close) {
+        client.close = function() {
+          throw new Error("cannot get closed!");
+        };
+        close();
+        client.close = done;
+      });
+
+      session.close();
+    });
+  });
+
+  suite('.copy()', function() {
+    test('binary file with success', function(done) {
+      var session = new Session('host', {username: 'root', password: 'kuma'});
+      var src = "src";
+      var dest = "dest";
+      var options = {aa: 20};
+
+      var client = {
+        putFile: function(_src, _dest, _options, callback) {
+          assert.equal(_src, src);
+          assert.equal(_dest, dest);
+          assert.deepEqual(_options, {});
+          callback(null);
+        }
       };
-      session.copy('./src', '~/dest', function() {
-        assert.equal(fs.existsSync(pemFile), false);
+      var close = sinon.stub();
+      session._withSshClient = sinon.stub();
+      session._withSshClient.callsArgWith(0, client, close);
+
+      session.copy(src, dest, options, function(err, code, logs) {
+        assert.ifError(err);
+        assert.equal(code, 0);
+        assert.ok(logs);
+        assert.ok(close.called);
         done();
       });
     });
 
-    test('no pem or password', function(done) {
-      var session = new Session('host', {username: 'root'});
-      assert.throws(function() {
-        session.copy('./src', '~/dest', done);
-      });
-      done();
-    });
-
-    test('with vars', function(done) {
-
-      var tmpFile = '/tmp/' + helpers.randomId();
-      fs.writeFileSync(tmpFile, 'name: <%=name %>');
-
+    test('binary file with success', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'});
-      session._doSpawn = function(command, options, callback) {
-        var matched = command.match(/sshpass -p kuma scp ([\w\/]*) root@host:~\/dest/);
-        assert.ok(matched);
+      var src = "src";
+      var dest = "dest";
+      var options = {aa: 20};
 
-        var compiledFile = matched[1];
-        assert.ok(compiledFile);
-        var compiledContent = fs.readFileSync(compiledFile, {encoding: 'utf8'});
-        assert.equal(compiledContent, 'name: arunoda');
-
-        callback();
+      var client = {
+        putFile: function(_src, _dest, _options, callback) {
+          callback(new Error());
+        }
       };
-      session.copy(tmpFile, '~/dest', {name: 'arunoda'}, done);
+      var close = sinon.stub();
+      session._withSshClient = sinon.stub();
+      session._withSshClient.callsArgWith(0, client, close);
+
+      session.copy(src, dest, options, function(err) {
+        assert.ok(err);
+        assert.ok(close.called);
+        done();
+      });
     });
 
-    test('with ssh options', function(done) {
+    test('binary file with progressBar', function(done) {
+      var session = new Session('host', {username: 'root', password: 'kuma'});
+      var src = "src";
+      var dest = "dest";
+      var options = {progressBar: true};
 
-      var tmpFile = '/tmp/' + helpers.randomId();
-      fs.writeFileSync(tmpFile, 'name: <%=name %>');
-
-      var session = new Session('host', {username: 'root', password: 'kuma'}, { ssh: { foo: 'bar' }});
-      session._doSpawn = function(command, options, callback) {
-        fs.unlinkSync(tmpFile);
-        var matched = command.match(/sshpass -p kuma scp -o foo=bar ([\w\/]*) root@host:~\/dest/);
-        assert.ok(matched);
-        callback();
+      var client = {
+        putFile: function(_src, _dest, _options, callback) {
+          assert.equal(_src, src);
+          assert.equal(_dest, dest);
+          _options.onProgress(100);
+          callback(null);
+        }
       };
-      session.copy(tmpFile, '~/dest', {name: 'arunoda'}, done);
+      var close = sinon.stub();
+      session._withSshClient = sinon.stub();
+      session._withSshClient.callsArgWith(0, client, close);
+
+      session.copy(src, dest, options, function(err, code, logs) {
+        assert.ifError(err);
+        assert.equal(code, 0);
+        assert.ok(logs);
+        assert.ok(close.called);
+        done();
+      });
+    });
+
+    test('vars with success', function(done) {
+      var session = new Session('host', {username: 'root', password: 'kuma'});
+      var src = "/tmp/" + Math.ceil(Math.random() * 999999999);
+      var dest = "dest";
+      var options = {vars: {name: 'arunoda'}};
+      fs.writeFileSync(src, '<%= name %>');
+
+      var client = {
+        putContent: function(content, _dest, callback) {
+          assert.equal(content, options.vars.name);
+          assert.equal(_dest, dest);
+          callback(null);
+        }
+      };
+      var close = sinon.stub();
+      session._withSshClient = sinon.stub();
+      session._withSshClient.callsArgWith(0, client, close);
+
+      session.copy(src, dest, options, function(err, code, logs) {
+        assert.ifError(err);
+        assert.equal(code, 0);
+        assert.ok(logs);
+        assert.ok(close.called);
+        done();
+        rm.unlinkSync(src);
+      });
+    });
+
+    test('vars with failed', function(done) {
+      var session = new Session('host', {username: 'root', password: 'kuma'});
+      var src = "/tmp/" + Math.ceil(Math.random() * 999999999);
+      var dest = "dest";
+      var options = {vars: {name: 'arunoda'}};
+      fs.writeFileSync(src, '<%= name %>');
+
+      var client = {
+        putContent: function(content, _dest, callback) {
+          callback(new Error());
+        }
+      };
+      var close = sinon.stub();
+      session._withSshClient = sinon.stub();
+      session._withSshClient.callsArgWith(0, client, close);
+
+      session.copy(src, dest, options, function(err) {
+        assert.ok(err);
+        assert.ok(close.called);
+        done();
+        rm.unlinkSync(src);
+      });
     });
   });
 
   suite('.execute()', function() {
-    test('with password', function(done) {
+    test('execute and error', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'});
-      session._doSpawn = function(command, options, callback) {
-        var matched = command.match(/sshpass -p kuma ssh root@host "bash -s" < (.*)/);
-        var scriptLocation = matched[1];
-        assert.ok(matched);
-        assert.ok(command.indexOf(scriptLocation) > 0);
-        var fileContent = fs.readFileSync(scriptLocation, {encoding: 'utf8'});
-        assert.equal(fileContent, 'ls /');
-        callback();
+      session._withSshClient = sinon.stub();
+
+      var shellCommand = "ssdsdsds";
+      var options = {aa: 10};
+
+      var client = {
+        execute: function(_shellCommand, _options, callback) {
+          assert.equal(_shellCommand, _shellCommand);
+          assert.deepEqual(_options, options);
+          callback(new Error());
+        }
       };
-      session.execute('ls /', done);
-    });
-
-    test('with pem', function(done) {
-      var session = new Session('host', {username: 'root', pem: 'the-pem-content'});
-      var pemFile;
-      var scriptLocation;
-      session._doSpawn = function(command, options, callback) {
-        var matched = command.match(/ssh -i ([\w\/]*) root@host "bash -s" < (.*)/);
-        assert.ok(matched);
-
-        pemFile = matched[1];
-        scriptLocation = matched[2];
-      
-        var fileContent = fs.readFileSync(scriptLocation, {encoding: 'utf8'});
-        assert.equal(fileContent, 'ls /');
-
-        var pemFileContent = fs.readFileSync(pemFile, 'utf8');
-        assert.equal(pemFileContent, 'the-pem-content');
-
-        callback();
-      };
-      session.execute('ls /', function() {
-        assert.equal(fs.existsSync(pemFile), false);
-        assert.equal(fs.existsSync(scriptLocation), false);
+      var close = sinon.stub();
+      session._withSshClient.callsArgWith(0, client, close);
+      session.execute(shellCommand, options, function(err) {
+        assert.ok(err);
+        assert.ok(close.called);
         done();
       });
-    });
+    }); 
 
-    test('no password or pem', function(done) {
-      var session = new Session('host', {username: 'root'});
-      assert.throws(function() {
-        session.execute('ls /', done);
-      });
-      done();
-    });
+    test('execute and okay', function(done) {
+      var session = new Session('host', {username: 'root', password: 'kuma'});
+      session._withSshClient = sinon.stub();
 
-    test('with sshOptions', function(done) {
-      var session = new Session('host', {username: 'root', password: 'kuma'}, { ssh: { foo: 'bar' }});
-      session._doSpawn = function(command, options, callback) {
-        var matched = command.match(/sshpass -p kuma ssh -o foo=bar root@host "bash -s" < (.*)/);
-        assert.ok(matched);
-        callback();
+      var shellCommand = "ssdsdsds";
+      var options = {aa: 10};
+
+      var client = {
+        execute: function(_shellCommand, _options, callback) {
+          assert.equal(_shellCommand, _shellCommand);
+          assert.deepEqual(_options, options);
+          callback(null, {
+            code: 0,
+            stdout: 'stdout',
+            stderr: 'stderr'
+          });
+        }
       };
-      session.execute('ls /', done);
-    });
+      var close = sinon.stub();
+      session._withSshClient.callsArgWith(0, client, close);
+      session.execute(shellCommand, options, function(err, code, logs) {
+        assert.ifError(err);
+        assert.ok(close.called);
+        assert.ok(logs.stderr);
+        assert.ok(logs.stdout);
+        done();
+      });
+    }); 
   });
 
   suite('.executeScript', function() {

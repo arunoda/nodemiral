@@ -13,7 +13,8 @@
     "progress": "1.1.5"
   },
   "devDependencies": {
-    "mocha": "1.x"
+    "mocha": "1.x",
+    "sinon": "1.14.x"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha"
