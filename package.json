@@ -9,7 +9,8 @@
     "handlebars": "1.0.x",
     "colors": "0.6.x",
     "ssh2": "0.4.6",
-    "underscore": "1.8.x"
+    "underscore": "1.8.x",
+    "progress": "1.1.5"
   },
   "devDependencies": {
     "mocha": "1.x"

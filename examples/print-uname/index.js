@@ -9,8 +9,7 @@ var taskList = nodemiral.taskList('Getting and Printing `uname -a`');
 var closeCnt = 0;
 taskList.copy('copy passwd', {
   src: path.resolve(__dirname, "template.conf"),
-  dest: '/tmp/hello',
-  vars: {name: "arunoda"} 
+  dest: '/tmp/hello'
 });
 
 taskList.execute('get it', {
@@ -24,25 +23,5 @@ taskList.print('printing hello', {
 });
 
 taskList.run(session, function() {
-  if(++closeCnt == 2) {
-    session.close();
-  }
-});
-
-var taskList2 = nodemiral.taskList('Print..');
-
-taskList2.execute('get it', {
-  command: 'cat /tmp/hello'
-}, function(stdout, stderr) {
-  this.hello = stdout;
-});
-
-taskList2.print('printing hello', {
-  message: "\t Hello is: {{hello}}"
-});
-
-taskList2.run(session, function() {
-  if(++closeCnt == 2) {
-    session.close();
-  }
+  session.close();
 });
