@@ -69,4 +69,83 @@ suite('SSH', function() {
       stream.emit('close', 0, 'SIGINT');
     });
   });
+
+  suite('putFile', function() {
+    test('error on the request', function(done) {
+      var client = new SSH();
+      client._client.emit('ready');
+
+      client._client.sftp = sinon.stub();
+      client._client.sftp.callsArgWith(0, new Error());
+
+      client.putFile('src', 'dest', function(err) {
+        assert.ok(err);
+        done();
+      });
+    });
+
+    test('error on the fastPut', function(done) {
+      var client = new SSH();
+      client._client.emit('ready');
+
+      client._client.sftp = sinon.stub();
+      var sftp = {
+        fastPut: sinon.mock()
+      };
+      client._client.sftp.callsArgWith(0, null, sftp);
+      sftp.fastPut.callsArgWith(3, new Error());
+
+      client.putFile('src', 'dest', function(err) {
+        assert.ok(err);
+        done();
+      });
+    });
+
+    test('success on the fastPut', function(done) {
+      var client = new SSH();
+      client._client.emit('ready');
+
+      client._client.sftp = sinon.stub();
+      var sftp = {
+        fastPut: sinon.mock()
+      };
+      client._client.sftp.callsArgWith(0, null, sftp);
+      sftp.fastPut.callsArgWith(3, null);
+
+      client.putFile('src', 'dest', function(err) {
+        assert.ifError(err);
+        done();
+      });
+    });
+
+    test('success on the fastPut with progress', function(done) {
+      var client = new SSH();
+      client._client.emit('ready');
+
+      client._client.sftp = sinon.stub();
+      var sftp = {
+        fastPut: function(src, dest, _options, callback) {
+          assert.equal(src, 'src');
+          assert.equal(dest, 'dest');
+          _options.step(0, 10, 20);
+          _options.step(0, 10, 20);
+          callback(null);
+        }
+      };
+
+      client._client.sftp.callsArgWith(0, null, sftp);
+
+      var options = {
+        onProgress: sinon.stub()
+      }
+      client.putFile('src', 'dest', options, function(err) {
+        assert.ifError(err);
+        assert.equal(options.onProgress.callCount, 2);
+        assert.deepEqual(options.onProgress.args, [
+          [50], [100]
+        ]);
+        done();
+      });
+    });
+  })
 });
