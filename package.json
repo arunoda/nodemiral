@@ -7,10 +7,14 @@
     "ejs": "0.8.x",
     "debug": "0.7.x",
     "handlebars": "1.0.x",
-    "colors": "0.6.x"
+    "colors": "0.6.x",
+    "ssh2": "0.4.6",
+    "underscore": "1.8.x",
+    "progress": "1.1.5"
   },
   "devDependencies": {
-    "mocha": "1.x"
+    "mocha": "1.x",
+    "sinon": "1.14.x"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha"

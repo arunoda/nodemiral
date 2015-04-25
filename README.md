@@ -57,22 +57,22 @@ execute given shell command on the remote server
 execute a local shell script in the remote server. You can template shell script with [EJS](https://github.com/visionmedia/ejs).
 
     @param localScriptFile - localScriptFile
-    @param templateVars - variables to the template if uses ejs in the script
-    @param options - {onStdout, onStderr}
+    @param options.vars - variables to the template if uses ejs in the script
     @param callback - callback containing following parameters
       err - err if exists
       code - status code of the ssh process
       logs - {stdout: 'stdout logs', stderr: 'stderr logs'}
-    session.executeScript(localScriptFile, templateVars, callback);
+    session.executeScript(localScriptFile, options, callback);
 
 #### copy
 copy a file from local machine to the remote machine. Supports binary files too. Support EJS templating with non-binary files
 
     @param localFile - localFile
     @param remoteFileLocation - remoteFileLocation
-    @param options - {onStdout, onStderr}
+    @param options.vars - templateVars
+    @param optiosn.progressBar - show progress bar
     @param callback - callback containing following parameters
       err - err if exists
       code - status code of the ssh process
       logs - {stdout: 'stdout logs', stderr: 'stderr logs'}
-    session.copy(localFile, remoteFileLocation, templateVars, callback)
+    session.copy(localFile, remoteFileLocation, options, callback)
