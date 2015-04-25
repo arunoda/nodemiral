@@ -196,8 +196,8 @@ suite('Session', function() {
         assert.equal(code, 0);
         assert.ok(logs);
         assert.ok(close.called);
+        fs.unlinkSync(src);
         done();
-        rm.unlinkSync(src);
       });
     });
 
