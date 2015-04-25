@@ -148,4 +148,79 @@ suite('SSH', function() {
       });
     });
   })
+
+  suite('putContent', function() {
+    test('error on sftp', function(done) {
+      var client = new SSH();
+      client._client.emit('ready');
+
+      client._client.sftp = sinon.stub();
+      var sftp = {};
+      client._client.sftp.callsArgWith(0, new Error());
+
+      client.putContent('some-commnads', 'dest', function(err) {
+        assert.ok(err);
+        done();
+      });
+    });
+
+    test('error on open file', function(done) {
+      var client = new SSH();
+      client._client.emit('ready');
+
+      client._client.sftp = sinon.stub();
+      var sftp = {
+        open: sinon.stub().callsArgWith(2, new Error())
+      };
+      client._client.sftp.callsArgWith(0, null, sftp);
+
+      client.putContent('some-commnads', 'dest', function(err) {
+        assert.ok(err);
+        assert.equal(sftp.open.args[0][0], 'dest');
+        done();
+      });
+    });
+
+    test('error on writing data', function(done) {
+      var client = new SSH();
+      client._client.emit('ready');
+      var fileHanlde = 74;
+
+      client._client.sftp = sinon.stub();
+      var sftp = {
+        open: sinon.stub().callsArgWith(2, null, fileHanlde),
+        write: sinon.stub().callsArgWith(5, new Error())
+      };
+      client._client.sftp.callsArgWith(0, null, sftp);
+
+      client.putContent('some-commnads', 'dest', function(err) {
+        assert.ok(err);
+        assert.equal(sftp.open.args[0][0], 'dest');
+        done();
+      });
+    });
+
+    test('success on writing data', function(done) {
+      var client = new SSH();
+      client._client.emit('ready');
+      var fileHanlde = 74;
+
+      client._client.sftp = sinon.stub();
+      var sftp = {
+        open: sinon.stub().callsArgWith(2, null, fileHanlde),
+        write: sinon.stub().callsArgWith(5, null),
+        close: sinon.stub()
+      };
+      client._client.sftp.callsArgWith(0, null, sftp);
+      sftp.close.callsArgWith(1, null);
+
+      client.putContent('some-commnads', 'dest', function(err) {
+        assert.ifError(err);
+        assert.equal(sftp.open.args[0][0], 'dest');
+        assert.ok(sftp.close.called);
+        assert.equal(sftp.close.args[0][0], fileHanlde);
+        done();
+      });
+    });
+  });
 });
