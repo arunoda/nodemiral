@@ -221,7 +221,7 @@ suite('Session', function() {
         assert.ok(err);
         assert.ok(close.called);
         done();
-        rm.unlinkSync(src);
+        fs.unlinkSync(src);
       });
     });
   });
