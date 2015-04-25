@@ -316,7 +316,7 @@ suite('Session', function() {
       };
       var file = '/tmp/' + Math.ceil(Math.random() * 9999999);
       fs.writeFileSync(file, 'ls <%= options %> /');
-      session.executeScript(file, {options: '-all'}, function() {
+      session.executeScript(file, {vars: {options: '-all'}}, function() {
         fs.unlinkSync(file);
         done();
       });
@@ -333,7 +333,7 @@ suite('Session', function() {
       };
       var file = '/tmp/' + Math.ceil(Math.random() * 9999999);
       fs.writeFileSync(file, 'ls {{= options }} /');
-      session.executeScript(file, {options: '-all'}, function() {
+      session.executeScript(file, {vars: {options: '-all'}}, function() {
         fs.unlinkSync(file);
         done();
       });
