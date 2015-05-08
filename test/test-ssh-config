@@ -1,0 +1,9 @@
+# Keep ssh sessions alive
+Host *
+  ServerAliveInterval 60
+
+Host the-host
+    HostName 1.2.3.4
+    IdentityFile /path/to/pem
+    User toor
+
