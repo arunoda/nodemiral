@@ -4,6 +4,7 @@ var SSH = require('../lib/ssh');
 var assert = require('assert');
 var fs = require('fs');
 var sinon = require('sinon');
+var path = require('path');
 
 suite('Session', function() {
   suite('_getSshConnInfo', function() {
@@ -50,6 +51,77 @@ suite('Session', function() {
         readyTimeout: 60000
       });
     });
+
+    test('ssh config file', function(done) {
+      var host = "the-host";
+      var auth = {};
+      var configFile = path.join(__dirname, 'test-ssh-config');
+      var options = {ssh: {port: 24}, config: configFile};
+      var s = new Session(host, auth, options);
+
+      setTimeout(function () {
+        var conf = s._getSshConnInfo();
+
+        assert.deepEqual(conf, {
+          host: '1.2.3.4',
+          port: options.ssh.port,
+          username: 'toor',
+          privateKey: '/path/to/pem',
+          readyTimeout: 60000
+        });
+
+        done()
+      }, 1000);
+    });
+
+    // auth overrides config file
+    test('ssh config file + auth', function(done) {
+      var host = "the-host";
+      var auth = {username: 'user', pem: 'the-pem'};
+      var configFile = path.join(__dirname, 'test-ssh-config');
+      var options = {ssh: {port: 24}, config: configFile};
+      var s = new Session(host, auth, options);
+
+      setTimeout(function () {
+        var conf = s._getSshConnInfo();
+
+        assert.deepEqual(conf, {
+          host: '1.2.3.4',
+          port: options.ssh.port,
+          username: auth.username,
+          privateKey: auth.pem,
+          readyTimeout: 60000
+        });
+
+        done()
+      }, 1000);
+    });
+
+    // custom options will override others
+    test('ssh config file + custom options', function(done) {
+      var host = "the-host";
+      var auth = {username: 'user', pem: 'the-pem'};
+      var configFile = path.join(__dirname, 'test-ssh-config');
+
+      var options = {
+        config: configFile,
+        ssh: {
+          host: 'test-host',
+          port: 'test-port',
+          username: 'test-username',
+          privateKey: 'test-privateKey',
+          readyTimeout: 'test-readyTimeout',
+        },
+      };
+
+      var s = new Session(host, auth, options);
+
+      setTimeout(function () {
+        var conf = s._getSshConnInfo();
+        assert.deepEqual(conf, options.ssh);
+        done()
+      }, 1000);
+    });
   });
 
   suite('_withSshClient', function() {
@@ -88,11 +160,11 @@ suite('Session', function() {
         client.close = function() {
           throw new Error("cannot get closed!");
         };
+
         close();
         client.close = done;
+        session.close();
       });
-
-      session.close();
     });
   });
 
@@ -248,7 +320,7 @@ suite('Session', function() {
         assert.ok(close.called);
         done();
       });
-    }); 
+    });
 
     test('execute and okay', function(done) {
       var session = new Session('host', {username: 'root', password: 'kuma'});
@@ -277,7 +349,7 @@ suite('Session', function() {
         assert.ok(logs.stdout);
         done();
       });
-    }); 
+    });
   });
 
   suite('.executeScript', function() {
