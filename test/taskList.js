@@ -292,7 +292,7 @@ suite('TaskList', function() {
     });
 
     taskList.second('Two', {
-      data: "v1: {{simple.v1}} - v2: {{simple.v2}}",
+      data: "v1: <%= simple.v1 %> - v2: <%= simple.v2 %>",
       aa: 20
     });
 
