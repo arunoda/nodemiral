@@ -3,7 +3,8 @@ var Session = require('../lib/session');
 var assert = require('assert');
 
 suite('TaskList', function() {
-  test('register and run', function(done) {
+  
+test('register and run', function(done) {
     var optionsList = [];
     var session = new Session('host');
     TaskList.registerTask('simpleTask', function(_session, options, callback) {
@@ -24,7 +25,6 @@ suite('TaskList', function() {
       done();
     });
   });
-
   test('when error', function(done) {
     var session = new Session('host');
     TaskList.registerTask('simpleTask2', function(_session, options, callback) {
@@ -307,6 +307,64 @@ suite('TaskList', function() {
         aa: 20
       }]);
 
+      done();
+    });
+  });
+
+  test('run in parallel', function(done) {
+    var optionsList = [];
+    var sessions = [
+      new Session("h1"),
+      new Session("h2"),
+    ];
+
+    var execOrder = [];
+
+    TaskList.registerTask('t1', function(_session, options, callback) {
+      execOrder.push("t1::" + _session._host);
+      setTimeout(callback, 100);
+    });
+
+    TaskList.registerTask('t2', function(_session, options, callback) {
+      execOrder.push("t2::" + _session._host);
+      setTimeout(callback, 100);
+    });
+
+    var taskList = new TaskList('simple', {pretty: false});
+    taskList.t1('Simple Name');
+    taskList.t2('Simple Name');
+    
+    taskList.run(sessions, function(summaryMap) {
+      assert.deepEqual(execOrder, ["t1::h1", "t1::h2", "t2::h1", "t2::h2"]);
+      done();
+    });
+  });
+
+  test('run in series', function(done) {
+    var optionsList = [];
+    var sessions = [
+      new Session("h1"),
+      new Session("h2"),
+    ];
+
+    var execOrder = [];
+
+    TaskList.registerTask('t1', function(_session, options, callback) {
+      execOrder.push("t1::" + _session._host);
+      setTimeout(callback, 100);
+    });
+
+    TaskList.registerTask('t2', function(_session, options, callback) {
+      execOrder.push("t2::" + _session._host);
+      setTimeout(callback, 100);
+    });
+
+    var taskList = new TaskList('simple', {pretty: false});
+    taskList.t1('Simple Name');
+    taskList.t2('Simple Name');
+    
+    taskList.run(sessions, {series: true}, function(summaryMap) {
+      assert.deepEqual(execOrder, ["t1::h1", "t2::h1", "t1::h2", "t2::h2"]);
       done();
     });
   });
