@@ -1,6 +1,6 @@
 {
   "name": "nodemiral",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Server Automation for NodeJS over SSH",
   "main": "lib/nodemiral.js",
   "dependencies": {
