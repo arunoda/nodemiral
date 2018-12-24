@@ -7,7 +7,7 @@
     "ejs": "0.8.x",
     "debug": "^4.1.1",
     "colors": "0.6.x",
-    "ssh2": "0.4.6",
+    "ssh2": "^0.6.1",
     "underscore": "1.8.x",
     "progress": "1.1.5",
     "async": "0.9.0"
