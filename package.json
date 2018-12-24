@@ -5,7 +5,7 @@
   "main": "lib/nodemiral.js",
   "dependencies": {
     "ejs": "0.8.x",
-    "debug": "0.7.x",
+    "debug": "^4.1.1",
     "colors": "0.6.x",
     "ssh2": "0.4.6",
     "underscore": "1.8.x",
