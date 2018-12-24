@@ -10,7 +10,7 @@
     "ssh2": "^0.6.1",
     "underscore": "^1.9.1",
     "progress": "^2.0.3",
-    "async": "0.9.0"
+    "async": "^2.6.1"
   },
   "devDependencies": {
     "mocha": "^5.2.0",
