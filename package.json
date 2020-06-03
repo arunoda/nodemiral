@@ -4,7 +4,7 @@
   "description": "Server Automation for NodeJS over SSH",
   "main": "lib/nodemiral.js",
   "dependencies": {
-    "ejs": "0.8.x",
+    "ejs": "3.1.x",
     "debug": "0.7.x",
     "colors": "0.6.x",
     "ssh2": "0.4.6",
