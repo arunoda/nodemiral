@@ -4,17 +4,16 @@
   "description": "Server Automation for NodeJS over SSH",
   "main": "lib/nodemiral.js",
   "dependencies": {
-    "ejs": "0.8.x",
-    "debug": "0.7.x",
-    "colors": "0.6.x",
-    "ssh2": "0.4.6",
-    "underscore": "1.8.x",
-    "progress": "1.1.5",
-    "async": "0.9.0"
+    "ejs": "^1.0.0",
+    "debug": "^4.1.1",
+    "ssh2": "^0.6.1",
+    "underscore": "^1.9.1",
+    "progress": "^2.0.3",
+    "async": "^2.6.1"
   },
   "devDependencies": {
-    "mocha": "1.x",
-    "sinon": "1.14.x"
+    "mocha": "^5.2.0",
+    "sinon": "^7.2.2"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha"
